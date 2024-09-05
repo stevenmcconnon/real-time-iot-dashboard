@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time IoT Dashboard with Replication Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Real-Time IoT Sensor Data with Replication Visualization</h1>
+    <canvas id="iotChart" width="400" height="200"></canvas>
+    <script>
+        const API_BASE_URL = 'http://localhost:3000'; // Update this to your actual backend URL
+
+        const ctx = document.getElementById('iotChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Neon - Temperature (°C)',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        fill: false,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'RDS - Temperature (°C)',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        fill: false,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { 
+                        title: { display: true, text: 'Time' } 
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    }
+                }
+            }
+        });
+
+        const updateChart = async () => {
+            try {
+                const neonResponse = await fetch(`${API_BASE_URL}/neon-data`);
+                const neonData = await neonResponse.json();
+
+                let latestNeonData = null;
+                let latestRdsData = null;
+
+                // Fetch Neon data and handle if it fails
+                if (neonData.length > 0) {
+                    latestNeonData = neonData[0];
+                }
+
+                // Fetch RDS data, handle errors silently
+                try {
+                    const rdsResponse = await fetch(`${API_BASE_URL}/external-data`);
+                    const rdsData = await rdsResponse.json();
+
+                    if (rdsData.length > 0) {
+                        latestRdsData = rdsData[0];
+                    }
+                } catch (error) {
+                    console.warn('Error fetching RDS data:', error);
+                    latestRdsData = null; // No RDS data available
+                }
+
+                // Ensure Neon data is available to plot
+                if (latestNeonData) {
+                    const neonTemperature = parseFloat(latestNeonData.temperature);
+                    const timestamp = new Date(latestNeonData.recorded_at).toLocaleTimeString();
+
+                    // Add Neon data to the chart
+                    chart.data.labels.push(timestamp);
+                    chart.data.datasets[0].data.push(neonTemperature);
+
+                    // If RDS data is available, add it too
+                    if (latestRdsData) {
+                        const rdsTemperature = parseFloat(latestRdsData.temperature);
+                        chart.data.datasets[1].data.push(rdsTemperature);
+                    } else {
+                        // If no RDS data, push null to maintain chart sync
+                        chart.data.datasets[1].data.push(null);
+                    }
+
+                    // Update the chart
+                    chart.update();
+                }
+            } catch (error) {
+                console.error('Error updating chart:', error);
+            }
+        };
+
+        setInterval(updateChart, 1000);  // Update every second
+    </script>
+</body>
+</html>

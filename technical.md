@@ -17,6 +17,14 @@ The dashboard includes:
 
 ## Deployment
 
-The application is deployed on Vercel, with PostgreSQL databases synchronized in real-time through logical replication.
+The application is deployed on AWS, with PostgreSQL databases synchronized in real-time through logical replication.
+
+## 🖼️ Architecture Overview
+
+![alt text](arch_diagram.png "Architecture Diagram")
+
+
+
+
 
 [Back to Main Page](README.md)

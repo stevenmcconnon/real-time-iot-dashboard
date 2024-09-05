@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: './.env' });
 
 const dbConfig = {
     external: {
@@ -7,7 +7,7 @@ const dbConfig = {
         database: process.env.DB_NAME,
         password: process.env.DB_PASSWORD,
         port: process.env.DB_PORT,
-        ssl: { rejectUnauthorized: false },  // This line enables SSL
+        ssl: { rejectUnauthorized: false, require: true },  // Ensure SSL is required
     },
     neon: {
         user: process.env.NEON_USER,
